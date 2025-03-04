@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThingSpeak Graph Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Add your custom CSS styles here */
+    </style>
+</head>
+<body>
+    <h1>ThingSpeak Graph Viewer</h1>
+    <label for="channel">Enter ThingSpeak Channel Number:</label>
+    <input type="text" id="channel" placeholder="Channel Number"><br>
+    <label for="field">Enter Field Number:</label>
+    <input type="text" id="field" placeholder="Field Number"><br>
+    <button onclick="getGraph()">Get Graph</button><br>
+    <canvas id="myChart" width="400" height="400"></canvas>
+
+    <script>
+        function getGraph() {
+            var channel = document.getElementById('channel').value;
+            var field = document.getElementById('field').value;
+            var url = "https://api.thingspeak.com/channels/" + channel + "/fields/" + field + ".json?results=500";
+
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                var labels = [];
+                var values = [];
+                data.feeds.forEach(feed => {
+                    labels.push(feed.created_at);
+                    values.push(parseFloat(feed.field));
+                });
+                var ctx = document.getElementById('myChart').getContext('2d');
+                var myChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Field ' + field + ' Data',
+                            data: values,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    autoSkip: true,
+                                    maxTicksLimit: 10
+                                }
+                            }],
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
